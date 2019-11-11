@@ -21,11 +21,11 @@ This repository is for my Basic Statistical Series with the University of Oregon
 **Questionnaire for Data**  
      Questionnaire_BasicStatsSeries.docx    
 **Activities**  
-     All SPSS Workshop Activities.pdf
- **Reference handouts**  
-     SPSS Quick Reference_Multiple Regression_UO Version.pdf
-     SPSS Quick Reference_correlation_UO Version.pdf
-     SPSS Quick Reference_One-WayANOVA_UO Version.pdf
+     All SPSS Workshop Activities.pdf  
+ **Reference handouts**   
+     SPSS Quick Reference_Multiple Regression_UO Version.pdf  
+     SPSS Quick Reference_correlation_UO Version.pdf  
+     SPSS Quick Reference_One-WayANOVA_UO Version.pdf  
      
      
 # Workshop 3: Basic Statistics in Excel (applied)
