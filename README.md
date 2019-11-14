@@ -36,3 +36,10 @@ This repository is for my Basic Statistical Series with the University of Oregon
 **Activities**  
      Basic Excel_Activites.PDF
  
+ # Workshop 4: Basic Data Visualization in Excel (applied)
+**Data**  
+     Young People Survey_Excel Visualizations.xlsx   
+**Questionnaire for Data**  
+     Questionnaire_BasicStatsSeries.docx    
+**Activities**  
+     All Basic Excel Visualization Activities.PDF  
