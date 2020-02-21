@@ -1,0 +1,414 @@
+---
+title: "Statistics in R I"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r}
+#install.packages(readxl)
+#install.packages("skimr")
+#install.packages(psych)
+#install.packages(tidyverse)
+#install.packages(moments)
+#install.packages("OutlierDetection")
+#install.packages("car")
+
+library(readxl)
+library(skimr)
+library(psych)
+library(tidyverse)
+library(moments)
+library(OutlierDetection)
+library(car)
+```
+
+
+# I. Introduction to R Markdown 
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. Unlike with a normal R script, you can save and print both the code and the output from the code. This is useful when doing statistics in R, since what you care about is the output. Review the website above, and refer back to it when you want to create an R-markdown document.
+
+Below is a "chunk." It refers to a chunk of r code. Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*. Insert a chunk below this line
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file). Preview this document now. 
+
+The preview shows you a rendered HTML copy of the contents currently in the r markdown editor. It does not run any code chunks. To run and save the output of all of the code chunks use *Knit*. You can Knit a document to an html, Word, or PDF document by clicking the little arrow indicating the dropdown menu next to *Preview*. Practice kniting this document to word now (note: you might not be able to do a PDF because latex needs to be downloaded first), and make sure to do it again once we have completed the workshop so that you have all of the code and output in an organized, easy to read, format. 
+
+# II. Importing Data and other First Steps
+
+First, it is helpful to save the data you are working with to the project folder for the R analysis. Click File, New Project, then name and pick a location to save the directory. This will create a Project folder that this markdown document will be saved in. Then download the data from https://github.com/AMDeLouize/Statistics-Workshops/blob/master/Young%20People%20Survey_Basic%20Stats%20Workshop.xlsx and save it in the project folder you created.  
+
+Now it's time to read in the data using R script. Click the green arrow in the upper right of the chunk, select the code and click run at the top of this document, or select the code and press Ctrl+Enter. Try it now (Note: if you do not have the read xl package downloaded and would like to download it delete the hashtag and run all 3 lines of code):  
+```{r}
+data <- read_xlsx('Young People Survey_Basic Stats Workshop.xlsx', col_names = TRUE, na = "")
+```
+Note that the name to the left is one you make up to store your data frame as an R object. It will show up under the "Environment" tab to the right now. You can double click the dataframe in the "Environment" tab to open a tab where you can view the data.  
+
+Now look at the structure of the data to see the names of all the variables and what they are stored as:
+```{r}
+str(data)
+```
+
+Now would be a good time to look at the questionnaire the data came from to better understand what these variables represent. You can find the questionnare at https://github.com/AMDeLouize/Statistics-Workshops/blob/master/Questionnaire_BasicStatsSeries.docx 
+
+Notice most of the variables are numeric "num," with a few character strings "chr". We want to turn the characters into factors to be able to analyze. In other words, we want r to know that "female" and "male" refer to groups of people. Here is the code to turn the Gender character variable into a factor variable:
+
+```{r}
+data$Gender <- as.factor(data$Gender)
+```
+To select only one variable in the dataset use the $ (e.g., dataname$variablename)
+
+Now edit the above code to turn the variables Alcohol, Internetusage, Leftrighthanded, and Education into factor variables:
+
+```{r}
+
+```
+
+
+# III. Hypotheses 
+
+The following explain the different statistical tests and outlines the hypothesis we are going to test for each. Using the dataset, the questionnaire, and the example hypotheses, come up with a second hypothesis for the first four tests (Correlation, t-test, Chi-Squared test, One-way ANOVA, and Two-way ANOVA). 
+
+### 1. Correlation
+Are two continous variables related?
+
+Hypothesis 1. People who enjoy music will also tend to enjoy movies.
+
+Hypothesis 2. 
+
+### 2. Independent T-test
+Are two groups different on a continous variable? 
+
+Hypothesis 1. Women will enjoy romantic movies more than men.
+
+Hypothesis 2. 
+
+### 3. Chi-Squared Test
+Are two groups different in their group membership? 
+
+Hypothesis 1. Only children will be left-handed more than children with siblings.
+
+Hypothesis 2.
+
+### 4. One-Way ANOVA
+
+Hypothesis 1. People who drink a lot of alcohol will like pop music more than social drinkers, and social drinkers will like pop music more than non-drinkers.
+
+Hypothesis 2. 
+
+### 5. Two-way ANOVA
+
+Hypothesis 1a. People who drink a lot of alcohol will spend more money on entertainment than social drinkers, and social drinkers will spend more on entertainment than non-drinkers.
+
+Hypothesis 1b. Men will spend more money on entertainment than women.
+
+Hypothesis 1c. Drinking in men will lead to bigger differences in entertainment spending than it will for women such that men who drink more will spend significantly more on alcohol than women.
+
+### 6. Regression 
+
+Hypothesis 1. People who drink a lot and drink socially will save less money than people who do not drink alcohol when controlling for age, gender, the propensity to give to charity, the number of friends, and the propensity for regret.
+
+# IV. Descriptive Statistics
+
+### All Data
+
+You can get summary statistics on the entire dataset. This is useful for QA/QC with data (making sure your variables represent what they should). Run the following code:
+
+```{r}
+summary(data)
+```
+
+BUT that doesn't give you information on your standard deviations. Try loading this package and running the following code (note: I have hashtaged out the code to install the package in case you already have it or don't want it on your computer).
+
+```{r}
+skim(data)
+```
+
+### Specific Variables
+You might want to call summary statistics for the entire dataset. To select only one variable in the dataset use the $ (e.g., dataname$variablename). Try it below:
+```{r}
+skim(data$Dance)
+mean(data$Dance)
+mean(data$Dance, na.rm = TRUE)
+```
+
+Important R Note:   
+You can look at the R Documentation for a function using the ? and search the internet help pages for the term using ??.
+```{r}
+?skim
+?mean
+??standarddeviation
+```
+
+Use the last bit of code (??standarddeviation) to code for the standard deviation of dance using the stats::sd help page.
+```{r}
+
+```
+
+### Group By
+Sometimes you might not want the grand mean, but means for the groups that you are comparing. For example, our t-test hypothesis is "Women will enjoy romantic movies more than men" so we might want a mean romantic movie enjoyment rating for women and a mean romantic movie enjoyment rating for men. Here't the code to run summary statistics by groups:
+```{r}
+describe.by(data$Romantic, group = data$Gender)
+```
+
+In r there is always a ton of ways to do the same or similar things. Try this code for summarizing by group:
+```{r}
+genderdata <- group_by(data, Gender)
+
+summarize(genderdata, Mean = mean(Romantic, na.rm = T), StandardDeviation = sd(Romantic, na.rm = T), Minimum = min(Romantic, na.rm = T), Maximum = max(Romantic, na.rm = T), n = n())
+```
+
+Now get summary statistics by group for your t-test hypothesis (t-test hypothesis 2). Choose either of the two methods presented above (don't need to do both):
+```{r}
+
+```
+
+# V. Outlier Detection 
+
+An outlier is a data-point that is significantly different from the rest of the data. Some variables, when entered correctly, don't have outliers. For instance, ordinal vairables like our 1 to 5 survey answers won't have outliers since there can only be certain answers. Lets look at why thinking about outliers is important (you do NOT need to understand this code just run it to see the comparison): 
+
+```{r} 
+cars1 <- cars[1:25,]
+outlier <- data.frame(speed=c(15, 10), dist=c(250, 200)) 
+cars2 <- rbind(cars[1:23,], outlier)  
+
+ggplot(cars, aes(speed, dist)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  scale_x_continuous(limits = c(0, 30)) +
+  scale_y_continuous(limits = c(0, 300)) +
+  labs(x = "Speed", y = "Distance", title = "No Outliers")
+ggplot(cars2, aes(speed, dist)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  labs(x = "Speed", y = "Distance", title = "With Outliers")
+
+```
+
+There are numerous ways to detect outliers, here are a few:
+1. Check the min and max values of all of your variables when running descriptive statistics to make sure they make sense. 
+2. Check x and y scatterplots to visually identify outliers
+```{r}
+plot(data$Age, data$Music)
+```
+3. Use outlier detection methods
+```{r}
+OutlierDetection(cars2)
+```
+
+Use the outlier detection package to see if the Age variable has any outliers.
+```{r}
+
+```
+
+There are two kinds of outliers:   
+1. outliers that are actually correct measurements and just represent variability in the population  
+  Solution: Leave these in. To fix you COULD collect more data and/or use a better sampling method.  
+2. outliers that are due to experimental error  
+  Solution: Remove.   
+  
+To figure out which is which ask yourself, "are these values possible?" If they are, leave them in. Also, look to see if values are an order of magnitude higher or lower, (are values 5 to 100 and you have one that is 1000?) If so, this is likely a typo or a unit error (e.g., 1000 is in mg and 5-100 is g)  
+
+Here is the code to remove the cases that were outliers in the example cars dataset:
+```{r}
+cars2 <- cars2[-c(24, 25), ]
+```
+
+# VI. Statistical Assumptions
+First, identify the variables that are in your hypotheses (hypotheses 2) and list along with varibles from hypothesis 1. Run each assumption for hypothesis 1, then add new code for hypothesis 2. This can be done in the same code chunk or in a new code chunk. 
+
+### 1. Correlation
+First, lets identify the variables we will need for our correlations.  
+  *Hypothesis 1. Music and Movies  
+  *Hypothesis 2.  
+
+#### Correlation Assumptions
+##### A. Both variables normally distributed 
+##### B. Both variables are linearly related
+##### C. There is equality of variances/homoscedasticity between the two variables
+
+##### A. Both variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+skewness(data$Music, na.rm = TRUE)
+skewness(data$Movies, na.rm = T)
+
+kurtosis(data$Music, na.rm = TRUE)
+kurtosis(data$Movies, na.rm = TRUE)
+
+hist(data$Music)
+hist(data$Movies)
+```
+
+
+QUESTION: What variable(s) is/are not normally distributed? 
+ANSWER:  
+
+To still run this correlation we need to make this variable normal, which can be done by dichoamizing it:
+
+```{r}
+data$music_dichot <- ifelse(data$Music == 5, 1, 0)
+skewness(data$music_dichot, na.rm = T)
+kurtosis(data$music_dichot, na.rm = T)
+hist(data$music_dichot)
+```
+
+
+##### B. Both variables are linearly related
+```{r}
+plot(data$music_dichot, data$Movies)
+```
+
+##### C. There is equality of variances/homoscedasticity between the two variables
+GUIDELINE: Want ratio of variances to be no greater than 2:1. 
+```{r}
+var(data$Movies, na.rm = T)
+var(data$Music, na.rm = T)
+```
+
+
+### 2. Independent T-test
+First, lets identify the variables we will need for our t-tests:  
+  *Hypothesis 1. Gender and Romantic  
+  *Hypothesis 2.  
+
+#### Independent T-test Assumptions
+##### A. Both variables normally distributed 
+##### B. There is equality of variances/homoscedasticity between the two groups
+##### C. Each person is only in one of the groups
+
+##### A. Both variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+# Run this first to see what happens: skewness(data$Gender, na.rm = TRUE)
+
+skewness(as.numeric(data$Gender), na.rm = TRUE)
+skewness(data$Romantic, na.rm = T)
+
+kurtosis(as.numeric(data$Gender), na.rm = TRUE)
+kurtosis(data$Romantic, na.rm = TRUE)
+
+hist(as.numeric(data$Gender))
+hist(data$Romantic)
+```
+
+##### B. There is equality of variances/homoscedasticity between the two groups
+GUIDELINE: Want non-significance in Levenes test. Significance means the variances are different.
+```{r}
+leveneTest(data = data, Romantic ~ Gender)
+#The tilda ~ is an equation operator. The dependent (or y) variable always goes to the left, then the predictors or independent variables go on the right.
+```
+
+##### C. Each person is only in one of the groups
+This one you just have to think through. Is each person in this dataset either a Man or a Woman? 
+
+
+### 3. Chi-Squared Test
+First, lets identify the variables we will need for our chi-squared tests:  
+  *Hypothesis 1. OnlyChild and Leftrighthanded  
+  *Hypothesis 2.  
+
+#### Chi-Squared Test Assumptions
+##### A. Independent groups, each person is only in one one group of each variable. 
+
+### 4. One-Way ANOVA
+First, lets identify the variables we will need for our one-way ANOVAs:  
+  *Hypothesis 1. Alcohol and Pop  
+  *Hypothesis 2.   
+
+#### One-way ANOVA Test Assumptions
+##### A. The dependent variable is normally distributed
+##### B. There is equality of variances/homoscedasticity between the two groups
+##### C. Each person is only in one of the groups
+
+##### A. Both variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+skewness(data$Pop, na.rm = TRUE)
+
+kurtosis(data$Pop, na.rm = TRUE)
+
+hist(data$Pop)
+hist(data$Alcohol)
+
+```
+
+##### B. There is equality of variances/homoscedasticity between the two groups
+GUIDELINE: Want non-significance in Levenes test. Significance means the variances are different.
+```{r}
+data$Alcohol <- as.factor(data$Alcohol)
+leveneTest(data = data, Pop ~ Alcohol)
+```
+
+##### C. Each person is only in one of the groups
+
+
+### 5. Two-way ANOVA
+First, lets identify the variables we will need for our two-way ANOVA:  
+  *Hypothesis 1. Gender, Alcohol, EntertainmentSpending
+
+#### Two-way ANOVA Test Assumptions
+##### A. Both variables are normally distributed
+##### B. There is equality of variances/homoscedasticity between the two groups
+##### C. Each person is only in one group of each variable
+
+##### A. Both variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+skewness(data$Entertainmentspending, na.rm = TRUE)
+
+kurtosis(data$Entertainmentspending, na.rm = TRUE)
+
+hist(data$Entertainmentspending)
+```
+
+##### B. There is equality of variances/homoscedasticity between the groups
+```{r}
+leveneTest(data = data, Entertainmentspending ~ Alcohol*Gender)
+```
+
+##### C. Each person is only in one group of each variable 
+
+### 6. Regression 
+First, lets identify the variables we will need for our regression:  
+ *Hypothesis 1. Age, Alcohol, Gender, Charity, Friends, Regret, Finances  
+
+#### Multiple Linear Regression Test Assumptions
+##### A. All variables are normally distributed
+##### B. All variables are linearly related
+##### C. There is equality of variances/homoscedasticity between the variables
+##### D. There is little to no multicollinearity
+
+##### A. All variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+regressiondata <- data[c("Age", "Alcohol", "Gender", "Charity", "Friends", "Regret", "Finances")]
+
+describe(regressiondata, na.rm = T, ranges = F, IQR = F)
+
+regressiondata$Alcohol <- as.numeric(regressiondata$Alcohol)
+regressiondata$Gender <- as.numeric(regressiondata$Gender)
+
+lapply(regressiondata, function(x) hist(x))
+
+```
+
+##### B. & C. All variables are linearly related &  There is equality of variances/homoscedasticity between the variables
+GUIDELINE: Want relationship to look straight (not curved) and be roughly rectangular in shape (not triangle or funnel shaped).
+```{r}
+pairs(~Age+Charity+Friends+Regret+Finances,data = regressiondata)
+```
+
+
+##### D. There is little to no multicollinearity
+GUIDELINES: Need to do more multicollinarity checks when running the regression if correlation values are over .9
+```{r}
+cor(regressiondata, regressiondata, use = "pairwise.complete.obs")
+```
+
