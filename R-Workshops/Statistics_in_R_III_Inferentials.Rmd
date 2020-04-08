@@ -1,0 +1,256 @@
+---
+title: "Statistics in R - Inferential Statistics"
+author: "Alicia DeLouize"
+date: "2/23/2020"
+output: word_document
+---
+
+# I. Attaching packages and data  
+
+First, attach the packages you need. As a reminder you can run code by pusing RUN at the top of the document, by pushing on the green triangle, or by pushing ctrl + enter. 
+```{r}
+## Code to load packages 
+library(readxl)
+library(lsr)
+```
+
+Now you can download the data and questionnaire from https://researchguides.uoregon.edu/library_workshops/statistics It will be under the "Statistics II" tab. Make sure to save the data in your project folder.  
+
+Take a second to review the questionnaire again. These are the questions that the data came from.  
+
+Now lets read in the data: 
+```{r}
+data <- read_xlsx('Young People Survey_Basic Stats Workshop.xlsx', col_names = TRUE, na = "")
+```
+Notice we named our dataset object "data". You can name data objects whatever you want. After the function read_xlsx we specified the name of the document (it has to be in the same folder as the project, i.e., the same working directory), then we specified that the dataset had column labels, then we secified how NAs were coded in the excel document of data (if you dont know open the excel document and see what missing cases look like, in this case they are blank).
+
+Here is some data formatting code to run before we begin (we went over this code in the last workshop). Run this code:
+```{r}
+data$Leftrighthanded <- as.numeric(as.factor(data$Leftrighthanded))
+data$Alcohol <- as.factor(data$Alcohol)
+```
+
+# II. Reviewing hypotheses
+
+Here are the hypotheses from the previous excercise (Statistics in R I). Fill in the 2nd hypotheses with the hypotheses you came up with in the last workshop. 
+
+### 1. Correlation
+Are two continous variables related?  
+
+Hypothesis 1. People who enjoy music will also tend to enjoy movies.  
+
+Hypothesis 2. 
+
+### 2. Independent T-test
+Are two groups different on a continous variable?   
+
+Hypothesis 1. Women will enjoy romantic movies more than men.  
+
+Hypothesis 2. 
+
+### 3. Chi-Squared Test
+Are two groups different in their group membership? 
+
+Hypothesis 1. Only children will be left-handed more than children with siblings.  
+
+Hypothesis 2.
+
+### 4. One-Way ANOVA
+
+Hypothesis 1. People who drink a lot of alcohol will like pop music more than social drinkers, and social drinkers will like pop music more than non-drinkers.  
+
+Hypothesis 2. 
+
+### 5. Two-way ANOVA
+
+Hypothesis 1a. People who drink a lot of alcohol will spend more money on entertainment than social drinkers, and social drinkers will spend more on entertainment than non-drinkers.  
+
+Hypothesis 1b. Men will spend more money on entertainment than women.  
+
+Hypothesis 1c. Drinking in men will lead to bigger differences in entertainment spending than it will for women such that men who drink more will spend significantly more on alcohol than women.  
+
+### 6. Regression 
+
+Hypothesis 1. People who drink a lot and drink socially will save less money than people who do not drink alcohol when controlling for age, gender, the propensity to give to charity, the number of friends, and the propensity for regret.  
+
+# III. Reviewing Null-Hypothesis Significance Testing
+Here is a quick review to help interpret the results we find in the next steps.  
+
+Null hypothesis: no effect or no relationship based on data.   
+
+Alternate Hypothesis: The hypotheses we listed above, that there is an effect or relationship based on data.   
+
+p value: the conditional probability of achieving observed outcome if null hypothesis is true  
+	* based on sample size, as sample size goes up p-value goes down and vice versa  
+	* NOT an effect size, a smaller p-value does not mean that the variables are more related   
+	
+Effect size: A bunch of different statistics that tell you about the streangth of the association between the variables  
+
+Level of Significance, Critical Value, α Value =	p < .05 
+
+P Value               Common Language                                     Statistical Statement  
+	p < .05     “statistically significant” “unlikely due to chance” 	The null hypothesis was rejected  
+	p > .05     "not significant” “likely due to chance” 	       The null hypothesis could not be rejected  
+
+# IV. Inferential Statistics
+
+## 1. Correlation
+Hypothesis 1. People who enjoy music will also tend to enjoy movies.    
+
+Hypothesis 2. 
+
+```{r}
+## Here is how you run a two tailed pearson's correlation, this is if both variables are normally distributed:
+cor.test(data$Music, data$Movies)
+
+## However, if you remember from the last workshop the Music variable was not normally distributed and the data are ordinal. Therefore, we need to run a kendall correlation. 
+cor.test(data$Music, data$Movies, method = "kendall")
+```
+INTERPRETATION. A positive value means as answers to one question get higher, answers to the other question get higher as well. A negative value means as values of one variable are higher, values on the other variable get lower. Pearson's r is an effect size. r = .10 is a small effect, r = .3 is a medium effect, and r = .5 is a large effect (Cohen, 1992). 
+
+
+Now, run a pearson's correlation if both of your variables were normal, or a kendall correlation if they were not normal.
+```{r}
+
+```
+
+QUESTION. Did you reject the null hypotheses? Give a results statement. I have completed the first hypothesis as an example. 
+
+ANSWER.  
+Hypothesis 1. The null hypothesis was rejected. People who like music more also tend to like movies more.  
+Hypothesis 2. 
+
+## 2. Independent T-test
+Are two groups different on a continous variable?   
+
+Hypothesis 1. Women will enjoy romantic movies more than men.  
+
+Hypothesis 2. 
+
+Here is the code for running a t-test: 
+```{r}
+# Note: usually when running equations they go into the format y ~ x for one x variable or y ~ x + x for multiple x variables: 
+t.test(Romantic ~ Gender, data = data)
+
+# Cohen's d is the effect size for a t-test
+cohensD(Romantic ~ Gender, data = data)
+```
+INTERPRETATION. For Cohen’s d a small effect size is 0.2 – < 0.5, a medium effect size is 0.5 – < 0.8, and a large effect size is ≥ 0.8 (Cohen, 1988).
+
+Now run a t-test with your variables for hypothesis 2: 
+```{r}
+
+```
+
+QUESTION. Did you reject the null hypotheses? Give a results statement. 
+
+ANSWER.  
+Hypothesis 1.  
+Hypothesis 2.  
+
+## 3. Chi-Squared Test
+Are two groups different in their group membership?   
+
+Hypothesis 1. Only children will be left-handed more than children with siblings.   
+
+Hypothesis 2.  
+```{r}
+# For the chi squared function you seperate the two variables with a comma. Also, there is no "data =" call so you have to specify which dataset the variables are in with the $ (dataname$variablename):
+chisq.test(data$Onlychild, data$Leftrighthanded)
+
+# Effect sixe for chi-squared test is the cramer's v: 
+cramersV(data$Leftrighthanded, data$Onlychild)
+```
+INTERPRETATION. For two groups, a Cramer's v between 0.100 – < 0.300 is a small effect, between 0.300 – < 0.500 is a medium effect, and ≥ 0.500 is a small effect. 
+
+Now run a chi-squared test for the second hypothesis: 
+```{r}
+
+```
+
+QUESTION. Did you reject the null hypotheses? Give a results statement. 
+
+ANSWER.  
+Hypothesis 1.  
+Hypothesis 2.  
+
+## 4. One-Way ANOVA
+
+Hypothesis 1. People who drink a lot of alcohol will like pop music more than social drinkers, and social drinkers will like pop music more than non-drinkers.  
+
+Hypothesis 2.
+
+Here is the code to run a one-way ANOVA:
+```{r}
+# Sometimes just running the statistical function doesn't give you the output you need. Try running this code and see if you can interpret the test:
+aov(Pop ~ Alcohol, data = data)
+
+# BUT you can save a statistical test as an object! (Note the name is arbitrary, here I call it myanova): 
+myanova <- aov(Pop ~ Alcohol, data = data)
+
+# Then you can call different outputs:
+summary(myanova)
+
+# And you can call the effect sizes:
+etaSquared(myanova)
+
+# The F test tells you IF the means of the three groups are different, but not HOW they are different. Here is the code for the post-hoc test that tells you which groups are different from one another:
+TukeyHSD(myanova)
+
+# Second to know HOW the groups are different is knowing whose mean is higher. So here is the code to call the group means: 
+model.tables(myanova, type = "means")
+```
+INTERPRETATION. For an ANOVA, eta squared value around 0.01 is small, around 0.06 is medium, and around 0.14 is large (Cohen, 1988, Field, 2005)
+
+Now run an ANOVA for hypothesis 2:
+```{r}
+
+```
+
+
+QUESTION. Did you reject the null hypotheses? Give a results statement. 
+
+ANSWER.  
+Hypothesis 1.  
+Hypothesis 2.  
+
+## 5. Two-way ANOVA
+
+Hypothesis 1a. People who drink a lot of alcohol will spend more money on entertainment than social drinkers, and social drinkers will spend more on entertainment than non-drinkers.  
+
+Hypothesis 1b. Men will spend more money on entertainment than women.  
+
+Hypothesis 1c. Drinking in men will lead to bigger differences in entertainment spending than it will for women such that men who drink more will spend significantly more on alcohol than women.  
+
+```{r}
+# A two way anova is runn the same as a one way only you add "+ IV2" to your formula:
+anovatwo <- aov(Entertainmentspending ~ Alcohol + Gender, data = data)
+summary(anovatwo)
+etaSquared(anovatwo)
+TukeyHSD(anovatwo)
+model.tables(anovatwo, type = "means")
+```
+
+
+QUESTION. Did you reject the null hypotheses? Give a results statement.  
+
+ANSWER.    
+Hypothesis 1a.    
+Hypothesis 1b.  
+Hypothesis 1c.  
+
+## 6. Regression 
+
+Hypothesis 1. People who drink a lot and drink socially will save less money than people who do not drink alcohol when controlling for age, gender, the propensity to give to charity, the number of friends, and the propensity for regret.
+
+```{r}
+linearmodel <- lm(Finances ~ Alcohol + Age + Gender + Charity + Friends + Regret, data = data)
+summary(linearmodel)
+```
+INTERPRETATION. The model turns Alcohol into a dummy variable since group variables aren't allowed as predictors. Alcohol1 is the comparison between 0 and 1 (never drinker and social drinker) and Alcohol2 is the comparison between 0 and 2 (never drinker and heavy drinker). The last two rows give the model fit. Multiple R Squared is the % variance of the outcome explained by the predictors; therefore, these predictors account for 7.2% of the variance in Fincances. The last line shows whether the overall model is significant, does this set of predictors cause differences in the outcome (Finances) that are beyond chance? 
+
+QUESTION. Did you reject the null hypotheses? Give a results statement. 
+
+ANSWER.  
+Hypothesis 1.  
+

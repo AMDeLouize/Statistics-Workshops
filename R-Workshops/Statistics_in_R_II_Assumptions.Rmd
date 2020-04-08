@@ -1,0 +1,265 @@
+---
+title: "Statistics in R - Assumptions"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r}
+# Load Packages
+library(readxl)
+library(skimr)
+library(psych)
+library(tidyverse)
+library(moments)
+library(OutlierDetection)
+library(car)
+
+# Load Data 
+data <- read_xlsx('Young People Survey_Basic Stats Workshop.xlsx', col_names = TRUE, na = "")
+```
+
+
+# V. Outlier Detection 
+
+An outlier is a data-point that is significantly different from the rest of the data. Some variables, when entered correctly, don't have outliers. For instance, ordinal vairables like our 1 to 5 survey answers won't have outliers since there can only be certain answers. Lets look at why thinking about outliers is important (you do NOT need to understand this code just run it to see the comparison): 
+
+```{r} 
+cars1 <- cars[1:25,]
+outlier <- data.frame(speed=c(15, 10), dist=c(250, 200)) 
+cars2 <- rbind(cars[1:23,], outlier)  
+
+ggplot(cars, aes(speed, dist)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  scale_x_continuous(limits = c(0, 30)) +
+  scale_y_continuous(limits = c(0, 300)) +
+  labs(x = "Speed", y = "Distance", title = "No Outliers")
+ggplot(cars2, aes(speed, dist)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  labs(x = "Speed", y = "Distance", title = "With Outliers")
+
+```
+
+There are numerous ways to detect outliers, here are a few:
+1. Check the min and max values of all of your variables when running descriptive statistics to make sure they make sense. 
+2. Check x and y scatterplots to visually identify outliers
+```{r}
+plot(data$Age, data$Music)
+```
+3. Use outlier detection methods
+```{r}
+OutlierDetection(cars2)
+```
+
+Use the outlier detection package to see if the Age variable has any outliers.
+```{r}
+
+```
+
+There are two kinds of outliers:   
+1. outliers that are actually correct measurements and just represent variability in the population  
+  Solution: Leave these in. To fix you COULD collect more data and/or use a better sampling method.  
+2. outliers that are due to experimental error  
+  Solution: Remove.   
+  
+To figure out which is which ask yourself, "are these values possible?" If they are, leave them in. Also, look to see if values are an order of magnitude higher or lower, (are values 5 to 100 and you have one that is 1000?) If so, this is likely a typo or a unit error (e.g., 1000 is in mg and 5-100 is g)  
+
+Here is the code to remove the cases that were outliers in the example cars dataset:
+```{r}
+cars2 <- cars2[-c(24, 25), ]
+```
+
+# VI. Statistical Assumptions
+First, identify the variables that are in your hypotheses (hypotheses 2) and list along with varibles from hypothesis 1. Run each assumption for hypothesis 1, then add new code for hypothesis 2. This can be done in the same code chunk or in a new code chunk. 
+
+### 1. Correlation
+First, lets identify the variables we will need for our correlations.  
+  *Hypothesis 1. Music and Movies  
+  *Hypothesis 2.  
+
+#### Correlation Assumptions
+##### A. Both variables normally distributed 
+##### B. Both variables are linearly related
+##### C. There is equality of variances/homoscedasticity between the two variables
+
+##### A. Both variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+skewness(data$Music, na.rm = TRUE)
+skewness(data$Movies, na.rm = T)
+
+kurtosis(data$Music, na.rm = TRUE)
+kurtosis(data$Movies, na.rm = TRUE)
+
+hist(data$Music)
+hist(data$Movies)
+```
+
+
+QUESTION: What variable(s) is/are not normally distributed? 
+ANSWER:  
+
+To still run this correlation we need to make this variable normal, which can be done by dichoamizing it:
+
+```{r}
+data$music_dichot <- ifelse(data$Music == 5, 1, 0)
+skewness(data$music_dichot, na.rm = T)
+kurtosis(data$music_dichot, na.rm = T)
+hist(data$music_dichot)
+```
+
+
+##### B. Both variables are linearly related
+```{r}
+plot(data$music_dichot, data$Movies)
+```
+
+##### C. There is equality of variances/homoscedasticity between the two variables
+GUIDELINE: Want ratio of variances to be no greater than 2:1. 
+```{r}
+var(data$Movies, na.rm = T)
+var(data$Music, na.rm = T)
+```
+
+
+### 2. Independent T-test
+First, lets identify the variables we will need for our t-tests:  
+  *Hypothesis 1. Gender and Romantic  
+  *Hypothesis 2.  
+
+#### Independent T-test Assumptions
+##### A. Both variables normally distributed 
+##### B. There is equality of variances/homoscedasticity between the two groups
+##### C. Each person is only in one of the groups
+
+##### A. Both variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+# Run this first to see what happens: skewness(data$Gender, na.rm = TRUE)
+
+skewness(as.numeric(data$Gender), na.rm = TRUE)
+skewness(data$Romantic, na.rm = T)
+
+kurtosis(as.numeric(data$Gender), na.rm = TRUE)
+kurtosis(data$Romantic, na.rm = TRUE)
+
+hist(as.numeric(data$Gender))
+hist(data$Romantic)
+```
+
+##### B. There is equality of variances/homoscedasticity between the two groups
+GUIDELINE: Want non-significance in Levenes test. Significance means the variances are different.
+```{r}
+leveneTest(data = data, Romantic ~ Gender)
+#The tilda ~ is an equation operator. The dependent (or y) variable always goes to the left, then the predictors or independent variables go on the right.
+```
+
+##### C. Each person is only in one of the groups
+This one you just have to think through. Is each person in this dataset either a Man or a Woman? 
+
+
+### 3. Chi-Squared Test
+First, lets identify the variables we will need for our chi-squared tests:  
+  *Hypothesis 1. OnlyChild and Leftrighthanded  
+  *Hypothesis 2.  
+
+#### Chi-Squared Test Assumptions
+##### A. Independent groups, each person is only in one one group of each variable. 
+
+### 4. One-Way ANOVA
+First, lets identify the variables we will need for our one-way ANOVAs:  
+  *Hypothesis 1. Alcohol and Pop  
+  *Hypothesis 2.   
+
+#### One-way ANOVA Test Assumptions
+##### A. The dependent variable is normally distributed
+##### B. There is equality of variances/homoscedasticity between the two groups
+##### C. Each person is only in one of the groups
+
+##### A. Both variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+skewness(data$Pop, na.rm = TRUE)
+
+kurtosis(data$Pop, na.rm = TRUE)
+
+hist(data$Pop)
+hist(data$Alcohol)
+
+```
+
+##### B. There is equality of variances/homoscedasticity between the two groups
+GUIDELINE: Want non-significance in Levenes test. Significance means the variances are different.
+```{r}
+data$Alcohol <- as.factor(data$Alcohol)
+leveneTest(data = data, Pop ~ Alcohol)
+```
+
+##### C. Each person is only in one of the groups
+
+
+### 5. Two-way ANOVA
+First, lets identify the variables we will need for our two-way ANOVA:  
+  *Hypothesis 1. Gender, Alcohol, EntertainmentSpending
+
+#### Two-way ANOVA Test Assumptions
+##### A. Both variables are normally distributed
+##### B. There is equality of variances/homoscedasticity between the two groups
+##### C. Each person is only in one group of each variable
+
+##### A. Both variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+skewness(data$Entertainmentspending, na.rm = TRUE)
+
+kurtosis(data$Entertainmentspending, na.rm = TRUE)
+
+hist(data$Entertainmentspending)
+```
+
+##### B. There is equality of variances/homoscedasticity between the groups
+```{r}
+leveneTest(data = data, Entertainmentspending ~ Alcohol*Gender)
+```
+
+##### C. Each person is only in one group of each variable 
+
+### 6. Regression 
+First, lets identify the variables we will need for our regression:  
+ *Hypothesis 1. Age, Alcohol, Gender, Charity, Friends, Regret, Finances  
+
+#### Multiple Linear Regression Test Assumptions
+##### A. All variables are normally distributed
+##### B. All variables are linearly related
+##### C. There is equality of variances/homoscedasticity between the variables
+##### D. There is little to no multicollinearity
+
+##### A. All variables are normally distributed
+GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7 and -7 (Warner, 2002).
+```{r}
+regressiondata <- data[c("Age", "Alcohol", "Gender", "Charity", "Friends", "Regret", "Finances")]
+
+describe(regressiondata, na.rm = T, ranges = F, IQR = F)
+
+regressiondata$Alcohol <- as.numeric(regressiondata$Alcohol)
+regressiondata$Gender <- as.numeric(regressiondata$Gender)
+
+lapply(regressiondata, function(x) hist(x))
+
+```
+
+##### B. & C. All variables are linearly related &  There is equality of variances/homoscedasticity between the variables
+GUIDELINE: Want relationship to look straight (not curved) and be roughly rectangular in shape (not triangle or funnel shaped).
+```{r}
+pairs(~Age+Charity+Friends+Regret+Finances,data = regressiondata)
+```
+
+
+##### D. There is little to no multicollinearity
+GUIDELINES: Need to do more multicollinarity checks when running the regression if correlation values are over .9
+```{r}
+cor(regressiondata, regressiondata, use = "pairwise.complete.obs")
+```
+
