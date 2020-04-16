@@ -139,13 +139,13 @@ GUIDELINES: Skewness should be between 2 and -2 and kurtosis should be between 7
 ```{r}
 # Run this first to see what happens: skewness(data$Gender, na.rm = TRUE)
 
-skewness(as.numeric(data$Gender), na.rm = TRUE)
+skewness(as.numeric(as.factor(data$Gender)), na.rm = TRUE)
 skewness(data$Romantic, na.rm = T)
 
-kurtosis(as.numeric(data$Gender), na.rm = TRUE)
+kurtosis(as.numeric(as.factor(data$Gender)), na.rm = TRUE)
 kurtosis(data$Romantic, na.rm = TRUE)
 
-hist(as.numeric(data$Gender))
+hist(as.numeric(as.factor(data$Gender)))
 hist(data$Romantic)
 ```
 
@@ -243,8 +243,8 @@ regressiondata <- data[c("Age", "Alcohol", "Gender", "Charity", "Friends", "Regr
 
 describe(regressiondata, na.rm = T, ranges = F, IQR = F)
 
-regressiondata$Alcohol <- as.numeric(regressiondata$Alcohol)
-regressiondata$Gender <- as.numeric(regressiondata$Gender)
+regressiondata$Alcohol <- as.numeric(as.factor(regressiondata$Alcohol))
+regressiondata$Gender <- as.numeric(as.factor(regressiondata$Gender))
 
 lapply(regressiondata, function(x) hist(x))
 
