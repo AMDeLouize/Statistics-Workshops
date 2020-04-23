@@ -12,6 +12,7 @@ First, attach the packages you need. As a reminder you can run code by pusing RU
 ## Code to load packages 
 library(readxl)
 library(lsr)
+library(RVAideMemoire)
 ```
 
 Now you can download the data and questionnaire from https://researchguides.uoregon.edu/library_workshops/statistics It will be under the "Statistics II" tab. Make sure to save the data in your project folder.  
@@ -223,8 +224,8 @@ Hypothesis 1b. Men will spend more money on entertainment than women.
 Hypothesis 1c. Drinking in men will lead to bigger differences in entertainment spending than it will for women such that men who drink more will spend significantly more on alcohol than women.  
 
 ```{r}
-# A two way anova is runn the same as a one way only you add "+ IV2" to your formula:
-anovatwo <- aov(Entertainmentspending ~ Alcohol + Gender, data = data)
+# A two way anova is runn the same as a one way only you add "*IV2" to your formula:
+anovatwo <- aov(Entertainmentspending ~ Alcohol*Gender, data = data)
 summary(anovatwo)
 etaSquared(anovatwo)
 TukeyHSD(anovatwo)
