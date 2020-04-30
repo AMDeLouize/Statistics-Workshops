@@ -1,0 +1,240 @@
+---
+title: "Statistics in R - Visualization"
+author: "Alicia DeLouize"
+date: "4/16/2020"
+output: html_document
+---
+
+# I. Attaching packages and data  
+
+First, attach the packages you need. As a reminder you can run code by pusing RUN at the top of the document, by pushing on the green triangle, or by pushing ctrl + enter. Reminder - to instal use the following code: install.packages("NameofPackage")
+```{r}
+## Code to load packages 
+library(readxl)
+library(lsr)
+library(tidyverse)
+library(ggpubr)
+library(ggsignif)
+```
+
+Now lets read in the data: 
+```{r}
+data <- read_xlsx('Young People Survey_Basic Stats Workshop.xlsx', col_names = TRUE, na = "")
+str(data)
+```
+
+Here is some data formatting code to run before we begin. Run this code:
+```{r}
+
+data$Onlychild <- factor(data$Onlychild,  labels = c("With Siblings", "Only Child"))
+data$Alcohol <- factor(data$Alcohol, labels = c("Never Drinker", "Social Drinker", "Heavy Drinker"))
+data$Gender <- as.factor(data$Gender)
+```
+
+Here is the function for standard error, so we can easily add it to our graphs:
+```{r}
+se <- function(x, na.rm=FALSE) {
+  if (na.rm) x <- na.omit(x)
+  sqrt(var(x)/length(x))
+}
+```
+
+
+# II. More Information on ggplot2 
+
+GGplot2 is an R package that has the greatest ability to manupulate graphs in R. 
+
+Here is the overview page: https://ggplot2.tidyverse.org/
+Here is a list of the available functions: https://ggplot2.tidyverse.org/reference/
+Here is a cheat sheet: https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf
+Here is an example of the top 50 graphics you can make in r: http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
+
+Color quick reference: http://sape.inf.usi.ch/quick-reference/ggplot2/colour
+
+# III. Statistical Visualizations
+
+## 1. Correlation
+Hypothesis 1. People who enjoy music will also tend to enjoy movies. 
+Hypothesis 2. 
+
+Here is the code we ran last time for the inferential test: 
+```{r}
+## Here is how you run a two tailed pearson's correlation, this is if both variables are normally distributed:
+cor.test(data$Music, data$Movies)
+
+## However, if you remember from the last workshop the Music variable was not normally distributed and the data are ordinal. Therefore, we need to run a kendall correlation. 
+cor.test(data$Music, data$Movies, method = "kendall")
+```
+
+Here is the code for the visualization:
+```{r}
+# Basic code to start with 
+ggplot(data, aes(Music, Movies)) +
+  geom_point() +
+  geom_smooth(method = lm, se = F)
+
+# You can't tell what the dots are since they are overlapping
+# You can remove them by deleting geom_point or you can make the dot sizes represent the counts 
+ggplot(data, aes(Music, Movies)) +
+  geom_count() +
+  geom_smooth(method = lm, se = F)
+
+# Now lets add a title and make the appearance more scholarly
+ggplot(data, aes(Music, Movies)) +
+  geom_count() +
+  geom_smooth(method = lm, se = F) +
+  labs(title = 'Figure 1. Correlation between how much people like music and movies') + 
+  theme_bw()
+
+
+```
+
+Now make a graph using the previous code with your variables for hypothesis 2: 
+```{r}
+
+```
+
+
+## 2. Independent T-test
+Are two groups different on a continous variable?   
+
+Hypothesis 1. Women will enjoy romantic movies more than men.  
+Hypothesis 2. 
+
+Here is the code for running a t-test: 
+```{r}
+# Note: usually when running equations they go into the format y ~ x for one x variable or y ~ x + x for multiple x variables: 
+t.test(Romantic ~ Gender, data = data)
+
+# Cohen's d is the effect size for a t-test
+cohensD(Romantic ~ Gender, data = data)
+```
+
+Here is the code for the visualization:
+```{r}
+#First we want to summarize the data using the tidyverse
+data %>%
+filter(!is.na(Gender)) %>% 
+group_by(Gender) %>%
+summarise(mean = mean(Romantic, na.rm = TRUE), se = se(Romantic, na.rm = TRUE)) %>% 
+ggplot(aes(Gender, mean)) +
+  geom_bar(stat = "identity", width = .5, fill = "mistyrose3") + 
+  geom_errorbar(aes(ymin = mean-se, ymax= mean+se), width = .2) +
+  geom_signif(comparisons = list(c("female", "male")), annotations = "***") +
+  labs(title = 'Figure 2. Mean comparison of Romantic Movie Likability by Gender', y = 'Romantic Mean') +
+  theme_classic()
+```
+Now make a graph using the previous code with your variables for hypothesis 2: 
+```{r}
+
+```
+## 3. Chi-Squared Test
+Are two groups different in their group membership?   
+
+Hypothesis 1. Only children will be left-handed more than children with siblings. 
+Hypothesis 2. 
+
+Here is the code for a chi-squared test:
+```{r}
+# For the chi squared function you seperate the two variables with a comma. Also, there is no "data =" call so you have to specify which dataset the variables are in with the $ (dataname$variablename):
+chisq.test(data$Onlychild, data$Leftrighthanded)
+
+# Effect sixe for chi-squared test is the cramer's v: 
+cramersV(data$Leftrighthanded, data$Onlychild)
+```
+
+Here is the code for the visualization:
+```{r}
+mosaicplot(data$Onlychild~data$Leftrighthanded, xlab = 'Only Child', ylab = 'Left or Right Handed', main = "Comparison of Handedness and Sibling Status")
+
+```
+
+Now make a graph using the previous code with your variables for hypothesis 2: 
+```{r}
+
+```
+
+## 4. One-Way ANOVA
+
+Hypothesis 1. People who drink a lot of alcohol will like pop music more than social drinkers, and social drinkers will like pop music more than non-drinkers.  
+Hypothesis 2. 
+
+Here is the code to run a one-way ANOVA:
+```{r}
+# Sometimes just running the statistical function doesn't give you the output you need. Try running this code and see if you can interpret the test:
+aov(Pop ~ Alcohol, data = data)
+
+# BUT you can save a statistical test as an object! (Note the name is arbitrary, here I call it myanova): 
+myanova <- aov(Pop ~ Alcohol, data = data)
+
+# Then you can call different outputs:
+summary(myanova)
+
+# And you can call the effect sizes:
+etaSquared(myanova)
+
+# The F test tells you IF the means of the three groups are different, but not HOW they are different. Here is the code for the post-hoc test that tells you which groups are different from one another:
+TukeyHSD(myanova)
+
+# Second to know HOW the groups are different is knowing whose mean is higher. So here is the code to call the group means: 
+model.tables(myanova, type = "means")
+```
+
+Here is the code for the visualization:
+```{r}
+
+data %>%
+filter(!is.na(Alcohol)) %>% 
+group_by(Alcohol) %>%
+summarise(mean = mean(Pop, na.rm = TRUE), se = se(Pop, na.rm = TRUE)) %>% 
+ggplot(aes(Alcohol, mean)) +
+  geom_bar(stat = "identity", width = .5, fill = "mistyrose3") + 
+  geom_errorbar(aes(ymin = mean-se, ymax= mean+se), width = .2) +
+  geom_signif(comparisons = list(c("Never Drinker", "Social Drinker")), annotations = "*", y_position = 3.75) +
+   geom_signif(comparisons = list(c("Social Drinker", "Heavy Drinker")), annotations = "*", y_position = 4.00) +
+  geom_signif(comparisons = list(c("Never Drinker", "Heavy Drinker")), annotations = "ns", y_position = 4.25) +
+  labs(title = 'Figure 4. Mean comparison of Pop Music Likability by Alcohol Affinity', y = 'Pop Mean') +
+  theme_minimal()
+```
+
+Now make a graph using the previous code with your variables for hypothesis 2: 
+```{r}
+
+```
+
+## 5. Two-way ANOVA
+
+Hypothesis 1a. People who drink a lot of alcohol will spend more money on entertainment than social drinkers, and social drinkers will spend more on entertainment than non-drinkers.  
+
+Hypothesis 1b. Men will spend more money on entertainment than women.  
+
+Hypothesis 1c. Drinking in men will lead to bigger differences in entertainment spending than it will for women such that men who drink more will spend significantly more on alcohol than women.  
+
+
+Here is the code for a two-way ANOVA: 
+```{r}
+# A two way anova is runn the same as a one way only you add "+ IV2" to your formula:
+anovatwo <- aov(Entertainmentspending ~ Alcohol + Gender, data = data)
+summary(anovatwo)
+etaSquared(anovatwo)
+TukeyHSD(anovatwo)
+model.tables(anovatwo, type = "means")
+```
+
+Here is the code for the visualization:
+```{r}
+data %>%
+filter(!is.na(Alcohol), !is.na(Gender)) %>% 
+group_by(Alcohol, Gender) %>%
+summarise(mean = mean(Entertainmentspending, na.rm = TRUE), se = se(Entertainmentspending, na.rm = TRUE)) %>% 
+ggplot(aes(Alcohol, mean, fill = Gender)) +
+  geom_bar(stat = "identity", position = "Dodge", width = .5) + 
+  geom_errorbar(aes(ymin = mean-se, ymax= mean+se), position = "Dodge", width = .2) +
+  geom_signif(comparisons = list(c("Never Drinker", "Social Drinker")), annotations = "ns", y_position = 3.75) +
+   geom_signif(comparisons = list(c("Social Drinker", "Heavy Drinker")), annotations = "***", y_position = 4.25) +
+  geom_signif(comparisons = list(c("Never Drinker", "Heavy Drinker")), annotations = "***", y_position = 4.5) +
+   labs(title = 'Figure 5. Mean comparison ofEntertainment Spending by Gender and Alcohol Affinity', y = 'Entertainment Spending Mean') +
+  theme_classic2()
+```
+
+
