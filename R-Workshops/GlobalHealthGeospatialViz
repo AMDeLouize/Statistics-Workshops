@@ -1,0 +1,280 @@
+---
+title: "GH_DataViz_Quarto"
+format: html
+editor: visual
+---
+
+# Spatial Data Visualization Workshop in R
+
+![International Congress of Physiological Anthropology](images/ICPA%20Logo%20Cropped.png){fig-alt="International Congress of Physiological Anthropology 2022 logo blue globe with gold text" fig-align="center"}
+
+## A Short Introduction to Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. It is a new version of document (similar to RMarkdown) that allows you to edit content visually instead of just using RMarkdown code. You can switch back and forth between code and visual viewing/editing by clicking "Source" and "Visual" at the top left of the page. To learn more about Quarto see <https://quarto.org>.
+
+## The Code Chunk
+
+This is a code chunk, where you can write and run R stats code:
+
+```{r}
+
+```
+
+Using the visual editor, you can insert a code chunk in three different ways Click green +c icon in the upper right hand corner. 2. Go to the "Insert" menu above and click "Code Chunk" then R. Press ***ctl*** ***alt i*** on a Microsoft keyboard or command alt i on a Mac to insert a chunk using shortcuts.
+
+**Use one of these methods to insert a chunk below:**
+
+To run a code chunk, press 1. the green triangle (runs only that chunk) 2. the triangle with the green line (runs all previous chunks through the current chunk), 3. run in the upper right hand corner of the screen, or 4. ***ctrl*** or ***cmd enter.\
+***\
+**Type 2+2 in the code chunk you entered above and use one of the previous options to run it.**
+
+To delete a code chunk delete {r}.
+
+**Try it on one of the chunks above.**
+
+## Setup
+
+### Attaching Packages
+
+If you need to download the R packages, delete the hashtags before the "install.packages" codes and run the entire chunk. If you have already installed all of the packages, then you can run the code chunk as is.
+
+```{r}
+#install.packages("data.table")
+#install.packages("tidyverse")
+#install.packages("psych")
+#install.packages("maps")
+#install.packages("mapdata")
+#install.packages("ggthemes")
+
+library("data.table")                  #To read in large datasets
+library("tidyverse")                   #For Data Viz
+library("maps")                        #Includes US and World map data
+library("mapdata")                     #Includes Japan map data
+library("psych")                       #My favorite data description table
+library("ggthemes")                    # Has a map theme for ggplot 
+```
+
+### Attaching Data
+
+#### Global Health Data
+
+We are going to pull our global health data from <https://ourworldindata.org/>. Specifically, we will get COVID-19 data and pull it into R using the URL. This will allow us to always use the most recent dataset (it is updated daily). Note - each dataset you use will be downloaded so make sure you have the space!
+
+**First go the website [HERE](https://ourworldindata.org/covid-cases), right click on the Download .csv link and click "copy link address."**
+
+\*\*Add it inside the quotation marks (" ") after the arrow that points to url.\*\* Here we are creating a string character r object named"url."
+
+**Now click on "More" in the file window (bottom right RStudio window) and click "copy folder path to clipboard." Paste this path inside the quotation marks (" ") after the arrow that points to datafile. add a backslash, a name for the downloaded file and .csv.**
+
+**Run the code chunk to download today's data.**
+
+```{r}
+worldurl <- ""
+
+worlddatafile <- ""
+
+download.file(worldurl, worlddatafile)
+```
+
+Now the data is on your computer and can be imported into r.
+
+Run the chunk below to import the data into R.
+
+```{r}
+world_data <- fread(worlddatafile)
+```
+
+#### Attaching Map Data
+
+Instead of downloading map data from the internet, we already downloaded an R package that has the data in it. This makes it easier to work with .
+
+!= means does not equal
+
+```{r}
+# Attach world map data 
+world_map <- map_data("world")
+world_map <- subset(world_map, region != "Antartica")
+```
+
+\|\> is the pipe, it "pipes" an object from the previous line into the second line so that you do not have to call the first function.
+
+```{r}
+world_map2 <- map_data("world") |> 
+subset(region != "Antarctica")
+```
+
+## Data Preparation
+
+First, we need to know what data we have. Then, we need to check it to make sure that it is correct and that there are not any errors. Finally, we might need to transform, combine, or filter the data so that what we need for our visualization matches what is in the dataset.
+
+### Explore Data
+
+```{r}
+variable.names(world_data)
+str(world_data)
+summary(world_data)
+describe(world_data)
+```
+
+### Data Selection
+
+```{r}
+world_data$date <- as.character(world_data$date)
+case_data <- world_data |> 
+  
+  # Lets you choose the variables you want
+  select(iso_code, continent, location, date, new_cases_per_million) |> 
+  
+  # Lets you choose the cases you want
+  filter(date %in% c("2022-09-09", "2022-09-08", "2022-09-07", "2022-09-06", "2022-09-05", "2022-09-04", "2022-09-03"))  |>   
+  
+  # Lets you rename the variables 
+  rename(cases = new_cases_per_million) |>
+  
+  # Also, we need to rename some of the countries to match the map data
+  mutate(location = if_else(location == "United States", "USA", location)) |>
+
+  # Tell R what the groups are that you want summary data for 
+  group_by(location) |>
+  
+  # Create a composite variable of all the dates
+  summarise(cases = mean(cases, na.rm = T)) 
+  
+
+
+```
+
+```{r}
+summary(case_data)
+describe(case_data)
+
+hist(case_data$cases)
+```
+
+## A Short Introduction to GGPlot
+
+GGPlot is included in the tidyverse package and is a graphics language and data visualization package. It is one of the most versatile visualization packages because it uses customizable layers to make a graphic. Every data visualization graphic has 3 components:
+
+1.  Data - You don't actually see the data, but it is represented in geoms. It is the content you want to present visually.
+
+2.  Geoms - Visual marks and/or shapes that represent the data (dots, lines, ect.). In this case, our geom will be a map and we will fill the geom with different colors based on the data.
+
+3.  A coordinate system - This is the backgroud or scalar projection of your geoms. Most graphs are represented by x and y coordinates, but we will use latitude and longitude as the scale for our maps.
+
+Here are some more general resources on ggplot:
+
+-   [GGPlot Cheat Sheet](https://www.maths.usyd.edu.au/u/UG/SM/STAT3022/r/current/Misc/data-visualization-2.1.pdf)
+
+-   The [Complete GGPlot Tutorial](http://r-statistics.co/Complete-Ggplot2-Tutorial-Part1-With-R-Code.html) including the [Top 50 - Master List of Visualizations](http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html)
+
+-   A [Quick Intro to GGPlot](https://bookdown.org/agrogankaylor/quick-intro-to-ggplot2/quick-intro-to-ggplot2.html)
+
+-   Data Nova's [Intro to GGPlot](datanovia.com/en/lessons/introduction-to-ggplot2/)
+
+## Create Heat-map Visualizations Using GGPlot
+
+### World Map of Covid Cases
+
+First, lets create the COORDINATES that we are going to put our map GEOM on. We will use latitude and longitude for the coordinates.
+
+```{r}
+ggplot(case_data) +
+  expand_limits(x = world_map$long, y = world_map$lat)
+```
+
+Now we can place the map geom (or shape) onto this coordinate system. We want to place the geom ON TOP OF the coordinate system, so we want the code to go on top of the previous code.
+
+```{r}
+ggplot(case_data) +
+  geom_map(dat = world_map, map = world_map, aes(map_id = region),
+    fill = "white", color = "black", size = 0.25) +
+  expand_limits(x = world_map$long, y = world_map$lat)
+
+
+```
+
+Now that we have seen how the map goes onto a coordinate system, we can hide the coordinate system as this is not how maps are usually displayed. There is a themes package that does this for us.
+
+```{r}
+ggplot(case_data) +
+  geom_map(dat = world_map, map = world_map, aes(map_id = region),
+    fill = "white", color = "black", size = 0.25) +
+  expand_limits(x = world_map$long, y = world_map$lat) +
+  theme_map()
+```
+
+Now all we need is the data!
+
+```{r}
+ggplot(case_data) +
+  geom_map(dat = world_map, map = world_map, aes(map_id = region),
+    fill = "white", color = "black", size = 0.25) +
+  geom_map(map = world_map, aes(map_id = location, fill = cases), size = 0.25) +
+  expand_limits(x = world_map$long, y = world_map$lat) +
+  theme_map()
+
+```
+
+Now we can change some of the final details, such as titles and colors to make our visual representation look how we want.
+
+```{r}
+ggplot(case_data) +
+  geom_map(dat = world_map, map = world_map, aes(map_id = region),
+    fill = "white", color = "black", size = 0.25) +
+  geom_map(map = world_map, aes(map_id = location, fill = cases), size = 0.25) +
+  scale_fill_viridis_c()+
+  labs(title = "New Covid Cases on 09/09/2022 Globally", fill = "Cases per Million") +
+  expand_limits(x = world_map$long, y = world_map$lat) +
+  theme_map()
+```
+
+## Pick your own variable and try again
+
+We don't need to attach the data again, so first lets view the variables so you can pick one.
+
+### Explore Data
+
+```{r}
+variable.names(world_data)
+```
+
+### Data Selection
+
+Okay now that you have one, enter it into the "select" function, then change the "rename" code so that your new variables are renamed. Change the "Summarise" function so that it includes your new variable instead of "cases".
+
+```{r}
+case_data <- world_data |> 
+  
+  # Lets you choose the variables you want
+  select(iso_code, continent, location, date, ENTER THE VARIABLE YOU WANT HERE) |> 
+  
+  # Lets you choose the cases you want
+  filter(date %in% c("2022-09-09", "2022-09-08", "2022-09-07", "2022-09-06", "2022-09-05", "2022-09-04", "2022-09-03"))  |>   
+  
+  # Lets you rename the variables 
+  rename(cases = new_cases_per_million) |>
+  # Also, we need to rename some of the countries to match the map data
+  mutate(location = if_else(location == "United States", "USA", location)) |>
+
+  # Tell R what the groups are that you want summary data for 
+  group_by(location) |>
+  
+  # Create a composite variable of all the dates
+  summarise(cases = mean(cases, na.rm = T)) 
+  
+```
+
+## Create Heat-map Visualizations Using GGPlot
+
+Change "fill" in the second geom_map function to your variable instead of "cases." Then Change the labels listed for the title and legend in the labs function.
+
+```{r}
+ggplot(case_data) +
+  geom_map(dat = world_map, map = world_map, aes(map_id = region),
+    fill = "white", color = "black", size = 0.25) +
+  geom_map(map = world_map, aes(map_id = location, fill = cases), size = 0.25) +
+  scale_fill_viridis_c()+
+  labs(title = "New Covid Cases on 09/09/2022 Globally", fill = "Cases per Million") +
+  expand_limits(x = world_map$long, y = world_map$lat) +
+  theme_map()
+```
